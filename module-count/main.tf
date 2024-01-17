@@ -14,6 +14,3 @@ module "ec2countmodule" {
 
 }
 
-output "instance_id" {
-  value = module.ec2countmodule.*.MyInstnaceIDs
-}
