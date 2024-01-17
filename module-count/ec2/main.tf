@@ -13,6 +13,11 @@ data "aws_subnet" "mypublicSN" {
     values = ["Non-prod-Domain-VPC-subnet-public1-us-east-1a"]
   }
 }
+
+variable "aws_profile" {
+  type = string 
+  description = "The aws profile to be used for the operation"
+}
 resource "aws_instance" "ec2" {
   ami = var.ami_id
   instance_type = var.instance_type 

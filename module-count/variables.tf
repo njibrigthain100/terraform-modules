@@ -54,3 +54,8 @@ variable "server_names" {
   description = "The name of all the ec2 instances to be created"
 }
 
+variable "aws_profile" {
+  type = string 
+  description = "The profile to be used"
+}
+

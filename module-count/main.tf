@@ -1,17 +1,19 @@
 module "ec2countmodule" {
   source = "./ec2"
-  ami_id = "ami-0c0b74d29acd0cd97"
-  instance_type = "t2.micro"
-  myregion = "us-east-1"
-  environment = "prod"
-  az = "us-east-1a"
-  instance-profile = "AdminFullAccess"
-  keyname = "qa-keypair"
-    # mypubsubnet = "subnet-def3aad0"
-  SecurityGroup = [ "sg-0f6f082de3e8489c1", "sg-012757dc8bd4c1fd4" ]
-  server_names = [ "bk-tech-app", "bk-tech-web", "bk-tech-db" ]
+  ami_id = var.ami_id
+  instance_type = var.instance_type 
+  az = var.az
+  instance-profile = var.instance-profile
+  keyname = var.keyname
+  SecurityGroup = var.SecurityGroup
+  count = length(var.server_names)
+  environment = var.environment
+  aws_profile = var.aws_profile
+  server_names = var.server_names
+  myregion = var.myregion
+
 }
 
 output "instance_id" {
-  value = module.ec2countmodule.MyInstnaceIDs
+  value = module.ec2countmodule.*.MyInstnaceIDs
 }
