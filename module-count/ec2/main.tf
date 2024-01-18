@@ -1,7 +1,7 @@
 data "aws_vpc" "BKvpc" {
   filter{
     name = "tag:Name" 
-    values = ["Non-prod-Domain-VPC-vpc"]
+    values = ["BK-SYSOPS-vpc101"]
 
   }
 }
@@ -10,7 +10,7 @@ data "aws_subnet" "mypublicSN" {
     vpc_id = data.aws_vpc.BKvpc.id
   filter {
     name = "tag:Name" 
-    values = ["Non-prod-Domain-VPC-subnet-public1-us-east-1a"]
+    values = ["PubSN1"]
   }
 }
 
