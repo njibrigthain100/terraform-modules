@@ -14,10 +14,10 @@ data "aws_subnet" "mypublicSN" {
   }
 }
 
-variable "aws_profile" {
-  type = string 
-  description = "The aws profile to be used for the operation"
-}
+# variable "aws_profile" {
+#   type = string 
+#   description = "The aws profile to be used for the operation"
+
 resource "aws_instance" "ec2" {
   ami = var.ami_id
   instance_type = var.instance_type 
@@ -31,6 +31,6 @@ resource "aws_instance" "ec2" {
   count = length(var.server_names)
 
   tags = {
-    Name = element(var.server_names, count.index )
+    Name = element(var.server_names, count.index)
   }
 }
