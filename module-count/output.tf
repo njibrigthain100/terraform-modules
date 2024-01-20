@@ -1,3 +1,3 @@
 output "instance_id" {
-  value = module.ec2countmodule.*.MyInstnaceIDs
+  value = [ module.ec2countmodule.*.MyInstnaceIDs  ]
 }

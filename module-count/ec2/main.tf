@@ -31,6 +31,6 @@ resource "aws_instance" "ec2" {
   count = length(var.server_names)
 
   tags = {
-    Name = var.server_names[count.index]
+    Name = element(var.server_names, count.index )
   }
 }
