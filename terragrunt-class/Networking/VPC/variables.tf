@@ -71,3 +71,15 @@ variable "public_subnets_cidr" {
     default = [ "10.2.254.0/24", "10.2.255.0/24" ]
   
 }
+
+variable "private_az" {
+    type = list(string)
+    description = "The availability zones on which to create the private sunets"
+    default = [ "us-east-1a", "us-east-1b" ]
+}
+
+variable "public_az" {
+    type = list(string)
+    description = "The availability zones on which to create the public sunets"
+    default = [ "us-east-1a", "us-east-1b" ]
+}

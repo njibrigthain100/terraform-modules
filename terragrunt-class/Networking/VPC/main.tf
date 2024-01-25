@@ -26,6 +26,7 @@ resource "aws_vpc" "customer-vpc" {
 
 resource "aws_subnet" "customer-private-subnets" {
     vpc_id = aws_vpc.customer-vpc.id
+    availability_zone = var.private_az[count.index]
     count = length(var.private_subnets_cidr)
     cidr_block = var.private_subnets_cidr[count.index]
 
@@ -39,8 +40,12 @@ resource "aws_subnet" "customer-private-subnets" {
 
 resource "aws_subnet" "customer-public-subnets" {
     vpc_id = aws_vpc.customer-vpc.id
+    availability_zone = var.public_az[count.index]
     count = length(var.public_subnets_cidr)
+    # For the cidr block or az you can also use the element function as shown below
+    # cidr_block = element(var.public_subnets_cidr, count.index)
     cidr_block = var.public_subnets_cidr[count.index]
+    map_public_ip_on_launch = true 
 
       tags = merge(local.common_tags,
     {
