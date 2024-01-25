@@ -8,7 +8,7 @@ module "ec2countmodule" {
   SecurityGroup = var.SecurityGroup
   count = length(var.server_names)
   environment = var.environment
-  aws_profile = var.aws_profile
+  # aws_profile = var.aws_profile
   server_names = var.server_names
   myregion = var.myregion
 

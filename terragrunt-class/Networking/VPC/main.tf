@@ -23,3 +23,29 @@ resource "aws_vpc" "customer-vpc" {
     )
   
 }
+
+resource "aws_subnet" "customer-private-subnets" {
+    vpc_id = aws_vpc.customer-vpc.id
+    count = length(var.private_subnets_cidr)
+    cidr_block = var.private_subnets_cidr[count.index]
+
+      tags = merge(local.common_tags,
+    {
+        "Name" = "${var.Owner}-${var.Environment}-Private-Subnet-${count.index + 1}"
+    }
+    )
+
+}
+
+resource "aws_subnet" "customer-public-subnets" {
+    vpc_id = aws_vpc.customer-vpc.id
+    count = length(var.public_subnets_cidr)
+    cidr_block = var.public_subnets_cidr[count.index]
+
+      tags = merge(local.common_tags,
+    {
+        "Name" = "${var.Owner}-${var.Environment}-Public-Subnet-${count.index + 1}"
+    }
+    )
+
+}

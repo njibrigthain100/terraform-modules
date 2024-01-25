@@ -57,3 +57,17 @@ variable "region_name" {
     default = "us-east-1"
   
 }
+
+variable "private_subnets_cidr" {
+    type = list(string)
+    description = "The cidr range for all the private subnets"
+    default = [ "10.2.126.0/24", "10.2.127.0/24" ]
+  
+}
+
+variable "public_subnets_cidr" {
+    type = list(string)
+    description = "The cidr range for all the public subnets"
+    default = [ "10.2.254.0/24", "10.2.255.0/24" ]
+  
+}
