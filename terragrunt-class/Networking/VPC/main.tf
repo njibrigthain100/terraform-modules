@@ -11,7 +11,7 @@ locals {
     
   }
 }
-#Creating the vpc
+######################Creating the vpc#######################################################
 resource "aws_vpc" "customer-vpc" {
     cidr_block = var.cidr_block
     enable_dns_hostnames = true 
@@ -23,7 +23,7 @@ resource "aws_vpc" "customer-vpc" {
     )
   
 }
-#Creating the internet gateway
+######################Creating the internet gateway###############################################
 resource "aws_internet_gateway" "customer-igw" {
   vpc_id = aws_vpc.customer-vpc.id
   
@@ -34,7 +34,7 @@ resource "aws_internet_gateway" "customer-igw" {
     )
 
 }
-#Creating an eip for nat gateway 
+#######################Creating an eip for nat gateway############################################
 resource "aws_eip" "customer-eip" {
     domain = "vpc" 
      tags = merge(local.common_tags,
@@ -45,9 +45,10 @@ resource "aws_eip" "customer-eip" {
 
 }
 
-#Creating the nat gateway
+#####################Creating the nat gateway######################################################
 resource "aws_nat_gateway" "customer-nat_gw" {
 # The 0 in the below code means that we are allocating the nat gateway only to the first subnet
+  count = length(var.public_subnets_cidr)
   subnet_id = element(aws_subnet.customer-public-subnets.*.id, 0)
   allocation_id = aws_eip.customer-eip.id 
   # The dependency here is important as the nat gateway is depended on the public subnet
@@ -63,7 +64,7 @@ resource "aws_nat_gateway" "customer-nat_gw" {
     }
     )
 }
-#Creating the private subnets
+#####################Creating the private subnets##################################################
 resource "aws_subnet" "customer-private-subnets" {
     vpc_id = aws_vpc.customer-vpc.id
     availability_zone = var.private_az[count.index]
@@ -77,7 +78,7 @@ resource "aws_subnet" "customer-private-subnets" {
     )
 
 }
-#Creating the public subnets
+############################Creating the public subnets#############################################
 resource "aws_subnet" "customer-public-subnets" {
     vpc_id = aws_vpc.customer-vpc.id
     availability_zone = var.public_az[count.index]
@@ -94,14 +95,14 @@ resource "aws_subnet" "customer-public-subnets" {
     )
 
 }
-#Creating the private route table
+###########################Creating the private route table#############################################
 resource "aws_route_table" "customer-private-rt" {
   vpc_id = aws_vpc.customer-vpc.id  
-  
+
    tags = local.common_tags
 }
 
-# Creating private route 
+############################Creating private route##################################################### 
 
 resource "aws_route" "customer-private-route" {
     route_table_id = aws_route_table.customer-private-rt.id
@@ -113,14 +114,14 @@ resource "aws_route" "customer-private-route" {
     ]
   
 }
-#Creating the public route table 
+###########################Creating the public route table############################################## 
 resource "aws_route_table" "customer-public-rt" {
   vpc_id = aws_vpc.customer-vpc.id  
 
    tags = local.common_tags
 }
 
-#Creating the public route 
+##########################Creating the public route##################################################### 
 
 resource "aws_route" "customer-public-route" {
     route_table_id = aws_route_table.customer-private-rt.id
@@ -131,7 +132,7 @@ resource "aws_route" "customer-public-route" {
     ]
   
 }
-#Creating private route table association 
+###########################Creating private route table association##################################### 
 resource "aws_route_table_association" "customer-private-rt-association" {
     route_table_id = aws_route_table.customer-private-rt.id
     count = length(var.private_subnets_cidr)
@@ -139,7 +140,7 @@ resource "aws_route_table_association" "customer-private-rt-association" {
   
 }
 
-#Creating public route table association 
+############################Creating public route table association####################################### 
 resource "aws_route_table_association" "customer-public-rt-association" {
     route_table_id = aws_route_table.customer-public-rt.id
     count = length(var.public_subnets_cidr)
