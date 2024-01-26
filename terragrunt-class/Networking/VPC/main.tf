@@ -48,7 +48,6 @@ resource "aws_eip" "customer-eip" {
 #####################Creating the nat gateway######################################################
 resource "aws_nat_gateway" "customer-nat_gw" {
 # The 0 in the below code means that we are allocating the nat gateway only to the first subnet
-  count = length(var.public_subnets_cidr)
   subnet_id = element(aws_subnet.customer-public-subnets.*.id, 0)
   allocation_id = aws_eip.customer-eip.id 
   # The dependency here is important as the nat gateway is depended on the public subnet
@@ -67,9 +66,11 @@ resource "aws_nat_gateway" "customer-nat_gw" {
 #####################Creating the private subnets##################################################
 resource "aws_subnet" "customer-private-subnets" {
     vpc_id = aws_vpc.customer-vpc.id
-    availability_zone = var.private_az[count.index]
+    availability_zone = element(var.private_az, count.index)
+    # availability_zone = var.private_az[count.index]
     count = length(var.private_subnets_cidr)
-    cidr_block = var.private_subnets_cidr[count.index]
+    cidr_block = element(var.private_subnets_cidr, count.index)
+    # cidr_block = var.private_subnets_cidr[count.index]
 
       tags = merge(local.common_tags,
     {
@@ -81,11 +82,12 @@ resource "aws_subnet" "customer-private-subnets" {
 ############################Creating the public subnets#############################################
 resource "aws_subnet" "customer-public-subnets" {
     vpc_id = aws_vpc.customer-vpc.id
-    availability_zone = var.public_az[count.index]
+    availability_zone = element(var.public_az, count.index)
+    # availability_zone = var.public_az[count.index]
     count = length(var.public_subnets_cidr)
     # For the cidr block or az you can also use the element function as shown below
-    # cidr_block = element(var.public_subnets_cidr, count.index)
-    cidr_block = var.public_subnets_cidr[count.index]
+    cidr_block = element(var.public_subnets_cidr, count.index)
+    #cidr_block = var.public_subnets_cidr[count.index]
     map_public_ip_on_launch = true 
 
       tags = merge(local.common_tags,
@@ -99,17 +101,20 @@ resource "aws_subnet" "customer-public-subnets" {
 resource "aws_route_table" "customer-private-rt" {
   vpc_id = aws_vpc.customer-vpc.id  
 
-   tags = local.common_tags
+    tags = merge(local.common_tags,
+    {
+        "Name" = "${var.Owner}-${var.Environment}-Private-rt"
+    }
+    )
 }
 
 ############################Creating private route##################################################### 
 
 resource "aws_route" "customer-private-route" {
     route_table_id = aws_route_table.customer-private-rt.id
-    destination_cidr_block = "0.0.0.0/0" 
     gateway_id = aws_nat_gateway.customer-nat_gw.id
+    destination_cidr_block = "0.0.0.0/0" 
     depends_on = [ 
-        aws_eip.customer-eip,
         aws_nat_gateway.customer-nat_gw
     ]
   
@@ -118,15 +123,19 @@ resource "aws_route" "customer-private-route" {
 resource "aws_route_table" "customer-public-rt" {
   vpc_id = aws_vpc.customer-vpc.id  
 
-   tags = local.common_tags
+     tags = merge(local.common_tags,
+    {
+        "Name" = "${var.Owner}-${var.Environment}-Public-rt"
+    }
+    )
 }
 
 ##########################Creating the public route##################################################### 
 
 resource "aws_route" "customer-public-route" {
-    route_table_id = aws_route_table.customer-private-rt.id
-    destination_cidr_block = "0.0.0.0/0" 
+    route_table_id = aws_route_table.customer-public-rt.id
     gateway_id = aws_internet_gateway.customer-igw.id
+    destination_cidr_block = "0.0.0.0/0" 
     depends_on = [ 
         aws_internet_gateway.customer-igw
     ]
@@ -134,16 +143,16 @@ resource "aws_route" "customer-public-route" {
 }
 ###########################Creating private route table association##################################### 
 resource "aws_route_table_association" "customer-private-rt-association" {
-    route_table_id = aws_route_table.customer-private-rt.id
     count = length(var.private_subnets_cidr)
+    route_table_id = aws_route_table.customer-private-rt.id
     subnet_id = element(aws_subnet.customer-private-subnets.*.id, count.index)
   
 }
 
 ############################Creating public route table association####################################### 
 resource "aws_route_table_association" "customer-public-rt-association" {
-    route_table_id = aws_route_table.customer-public-rt.id
     count = length(var.public_subnets_cidr)
-    subnet_id = element(aws_subnet.customer-private-subnets.*.id, count.index)
+    route_table_id = aws_route_table.customer-public-rt.id
+    subnet_id = element(aws_subnet.customer-public-subnets.*.id, count.index)
   
 }

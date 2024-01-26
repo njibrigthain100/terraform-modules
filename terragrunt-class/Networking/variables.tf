@@ -1,5 +1,5 @@
 variable "region_name" {
-  type = string 
+  type        = string
   description = "The region to create the required resources"
-  default = "us-east-1"
+  default     = "us-east-1"
 }
