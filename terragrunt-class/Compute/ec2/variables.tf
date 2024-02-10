@@ -48,7 +48,7 @@ variable "CostCenter" {
 
 }
 
-variable "Complaince" {
+variable "Compliance" {
   type        = string
   description = "The compliance status of the resources"
 
