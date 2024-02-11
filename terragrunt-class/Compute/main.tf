@@ -8,5 +8,5 @@ module "security-group-module" {
     Tier = var.Tier
     Build-Method = var.Build-Method
     CostCenter = var.CostCenter
-    Complaince = var.Complaince
+    Compliance = var.Compliance
 }
