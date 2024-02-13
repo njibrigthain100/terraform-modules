@@ -56,8 +56,8 @@ variable "Compliance" {
 }
 
 
-variable "security_group_rules" {
-  description = "All security group rules"
+variable "webserver-security_group_rules" {
+  description = "All web server security group rules"
   type = list(object({
     from_port   = number
     to_port     = number
@@ -65,26 +65,36 @@ variable "security_group_rules" {
     cidr_ipv4   = string
     description = string
   }))
-  default = [{
-    from_port   = 22
-    to_port     = 22
-    ip_protocol = "tcp"
-    cidr_ipv4   = "0.0.0.0/0"
-    description = "SSH"
-    },
-    {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      cidr_ipv4   = "0.0.0.0/0"
-      description = "HTTP"
-    },
-    {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      cidr_ipv4   = "0.0.0.0/0"
-      description = "HTTPS"
-  }]
+ }
 
+variable "ssh-bastion-security_group_rules" {
+  description = "All ssh bastion security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}
+variable "rdp-bastion-security_group_rules" {
+  description = "All ssh bastion security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}
+
+variable "appserver-security_group_rules" {
+  description = "All app server security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
 }

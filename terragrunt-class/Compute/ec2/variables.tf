@@ -54,3 +54,46 @@ variable "Compliance" {
 
 
 }
+
+variable "webserver-security_group_rules" {
+  description = "All web server security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+ }
+
+variable "ssh-bastion-security_group_rules" {
+  description = "All ssh bastion security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}
+variable "rdp-bastion-security_group_rules" {
+  description = "All ssh bastion security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}
+
+variable "appserver-security_group_rules" {
+  description = "All app server security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}

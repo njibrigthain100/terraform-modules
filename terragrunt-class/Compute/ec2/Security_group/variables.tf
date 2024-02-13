@@ -65,29 +65,50 @@ variable "webserver-security_group_rules" {
     cidr_ipv4   = string
     description = string
   }))
-  default = [{
-    from_port   = 22
-    to_port     = 22
-    ip_protocol = "tcp"
-    cidr_ipv4   = "0.0.0.0/0"
-    description = "SSH"
-    },
-    {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      cidr_ipv4   = "0.0.0.0/0"
-      description = "HTTP"
-    },
-    {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      cidr_ipv4   = "0.0.0.0/0"
-      description = "HTTPS"
-  }]
+#   default = [{
+#     from_port   = 22
+#     to_port     = 22
+#     ip_protocol = "tcp"
+#     cidr_ipv4   = "10.2.254.0/24"
+#     description = "SSH"
+#     },
+#     {
+#       from_port   = 80
+#       to_port     = 80
+#       ip_protocol = "tcp"
+#       cidr_ipv4   = "10.2.254.0/24"
+#       description = "HTTP"
+#     },
+#     {
+#       from_port   = 443
+#       to_port     = 443
+#       ip_protocol = "tcp"
+#       cidr_ipv4   = "10.2.254.0/24"
+#       description = "HTTPS"
+#     },
+#     {
+#     from_port   = 22
+#     to_port     = 22
+#     ip_protocol = "tcp"
+#     cidr_ipv4   = "10.2.255.0/24"
+#     description = "SSH"
+#     },
+#     {
+#       from_port   = 80
+#       to_port     = 80
+#       ip_protocol = "tcp"
+#       cidr_ipv4   = "10.2.255.0/24"
+#       description = "HTTP"
+#     },
+#     {
+#       from_port   = 443
+#       to_port     = 443
+#       ip_protocol = "tcp"
+#       cidr_ipv4   = "10.2.255.0/24"
+#       description = "HTTPS"
+#   }]
 
-}
+ }
 
 variable "ssh-bastion-security_group_rules" {
   description = "All ssh bastion security group rules"
@@ -98,13 +119,13 @@ variable "ssh-bastion-security_group_rules" {
     cidr_ipv4   = string
     description = string
   }))
-  default = [{
-    from_port   = 22
-    to_port     = 22
-    ip_protocol = "tcp"
-    cidr_ipv4   = "0.0.0.0/0"
-    description = "SSH"
-    }]
+  # default = [{
+  #   from_port   = 22
+  #   to_port     = 22
+  #   ip_protocol = "tcp"
+  #   cidr_ipv4   = "0.0.0.0/0"
+  #   description = "SSH"
+  #   }]
 
 }
 variable "rdp-bastion-security_group_rules" {
@@ -116,13 +137,13 @@ variable "rdp-bastion-security_group_rules" {
     cidr_ipv4   = string
     description = string
   }))
-  default = [{
-    from_port   = 3389
-    to_port     = 3389
-    ip_protocol = "tcp"
-    cidr_ipv4   = "0.0.0.0/0"
-    description = "RDP"
-    }]
+  # default = [{
+  #   from_port   = 3389
+  #   to_port     = 3389
+  #   ip_protocol = "tcp"
+  #   cidr_ipv4   = "0.0.0.0/0"
+  #   description = "RDP"
+  #   }]
 
 }
 
@@ -135,33 +156,61 @@ variable "appserver-security_group_rules" {
     cidr_ipv4   = string
     description = string
   }))
-  default = [{
-    from_port   = 22
-    to_port     = 22
-    ip_protocol = "tcp"
-    cidr_ipv4   = "10.2.0.0/16"
-    description = "SSH"
-    },
-    {
-    from_port   = 3389
-    to_port     = 3389
-    ip_protocol = "tcp"
-    cidr_ipv4   = "10.2.0.0/16"
-    description = "RDP"
-    },
-    {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      cidr_ipv4   = "10.2.0.0/16"
-      description = "HTTP"
-    },
-    {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      cidr_ipv4   = "10.2.0.0/16"
-      description = "HTTPS"
-  }]
+  # default = [{
+  #   from_port   = 22
+  #   to_port     = 22
+  #   ip_protocol = "tcp"
+  #   cidr_ipv4   = "10.2.254.0/24"
+  #   description = "SSH from public subnet 1"
+  #   },
+  #   {
+  #   from_port   = 22
+  #   to_port     = 22
+  #   ip_protocol = "tcp"
+  #   cidr_ipv4   = "10.2.255.0/24"
+  #   description = "SSH from public subnet 2"
+  #   },
+  #   {
+  #   from_port   = 3389
+  #   to_port     = 3389
+  #   ip_protocol = "tcp"
+  #   cidr_ipv4   = "10.2.254.0/24"
+  #   description = "RDP from public subnet 1"
+  #   },
+  #       {
+  #   from_port   = 3389
+  #   to_port     = 3389
+  #   ip_protocol = "tcp"
+  #   cidr_ipv4   = "10.2.255.0/24"
+  #   description = "RDP from public subnet 2"
+  #   },
+  #   {
+  #     from_port   = 80
+  #     to_port     = 80
+  #     ip_protocol = "tcp"
+  #     cidr_ipv4   = "10.2.254.0/24"
+  #     description = "HTTP"
+  #   },
+  #    {
+  #     from_port   = 80
+  #     to_port     = 80
+  #     ip_protocol = "tcp"
+  #     cidr_ipv4   = "10.2.255.0/24"
+  #     description = "HTTP"
+  #   },
+  #   {
+  #     from_port   = 443
+  #     to_port     = 443
+  #     ip_protocol = "tcp"
+  #     cidr_ipv4   = "10.2.254.0/24"
+  #     description = "HTTPS"
+  # },
+  #   {
+  #     from_port   = 443
+  #     to_port     = 443
+  #     ip_protocol = "tcp"
+  #     cidr_ipv4   = "10.2.255.0/24"
+  #     description = "HTTPS"
+  # }]
 
 }
