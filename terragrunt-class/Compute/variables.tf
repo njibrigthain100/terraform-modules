@@ -98,3 +98,18 @@ variable "appserver-security_group_rules" {
     description = string
   }))
 }
+
+variable "keyname" {
+  type = string 
+  description = "The key pair to be used during instance build"
+}
+
+variable "bastion-instance-type" {
+  type = string
+  description = "The instance type for the bastion"
+}
+
+variable "iam_instance_profile" {
+  type = string 
+  description = "the iam instance profile to use for resource creation"
+}

@@ -11,7 +11,7 @@ locals {
 
   }
 }
-
+#########################SERVER AMIS IMPORT###############################
 # Get latest Amazon Linux 2 AMI for the web servers
 data "aws_ami" "amazon-linux-2" {
   most_recent = true
@@ -41,7 +41,7 @@ data "aws_ami" "amznlnx2-SQL" {
     values = ["amzn2-x86_64-SQL_2017_Standard*"]
   }
 }
-
+#########################NETWORKING RESOURCE IMPORT#########################
 data "aws_vpc" "customer_vpc" {
   filter {
     name   = "tag:Name"
@@ -76,3 +76,52 @@ data "aws_vpc" "customer_public_subnet_2" {
     values = ["${var.Owner}-${var.Environment}-Public-Subnet-2"]
   }
 }
+
+####################SECURITY GROUP IMPORT####################################
+
+data "aws_security_group" "webserver-security-group" {
+  filter {
+    name = "tag:Name"
+    values = ["${var.Owner}-${var.Environment}-WebServer-security_group"]
+  }
+}
+
+data "aws_security_group" "appserver-security-group" {
+  filter {
+    name = "tag:Name"
+    values = ["${var.Owner}-${var.Environment}-Appserver-security-group"]
+  }
+}
+
+data "aws_security_group" "ssh-bastion" {
+  filter {
+    name = "tag:Name"
+    values = ["${var.Owner}-${var.Environment}-SSH-Bastion-Security-group"]
+  }
+}
+
+data "aws_security_group" "rdp-bastion" {
+  filter {
+    name = "tag:Name"
+    values = ["${var.Owner}-${var.Environment}-RDP-Bastion-Security-group"]
+  }
+}
+
+########################SHH BASTION CREATION##################################
+resource "aws_instance" "customer-ssh-bastion" {
+  ami = data.aws_ami.amazon-linux-2.id
+  instance_type = var.bastion-instance-type 
+  associate_public_ip_address = "true"
+  key_name = var.keyname
+  subnet_id = data.aws_subnet.customer_public_subnet_1.id
+  security_groups = [data.aws_security_group.ssh-bastion.id]
+  iam_instance_profile = var.iam_instance_profile
+
+ tags = merge(local.common_tags,
+    {
+      "Name" = "${var.Owner}-${var.Environment}-VPC"
+    }
+  )
+}
+
+

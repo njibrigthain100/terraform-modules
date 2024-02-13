@@ -55,45 +55,17 @@ variable "Compliance" {
 
 }
 
-variable "webserver-security_group_rules" {
-  description = "All web server security group rules"
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    ip_protocol = string
-    cidr_ipv4   = string
-    description = string
-  }))
- }
-
-variable "ssh-bastion-security_group_rules" {
-  description = "All ssh bastion security group rules"
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    ip_protocol = string
-    cidr_ipv4   = string
-    description = string
-  }))
-}
-variable "rdp-bastion-security_group_rules" {
-  description = "All ssh bastion security group rules"
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    ip_protocol = string
-    cidr_ipv4   = string
-    description = string
-  }))
+variable "keyname" {
+  type = string 
+  description = "The key pair to be used during instance build"
 }
 
-variable "appserver-security_group_rules" {
-  description = "All app server security group rules"
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    ip_protocol = string
-    cidr_ipv4   = string
-    description = string
-  }))
+variable "bastion-instance-type" {
+  type = string
+  description = "The instance type for the bastion"
+}
+
+variable "iam_instance_profile" {
+  type = string 
+  description = "the iam instance profile to use for resource creation"
 }
