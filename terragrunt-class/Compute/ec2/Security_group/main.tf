@@ -117,7 +117,31 @@ resource "aws_vpc_security_group_ingress_rule" "customer-inbound-appserver-secur
   ip_protocol       = var.appserver-security_group_rules[count.index].ip_protocol
   from_port         = var.appserver-security_group_rules[count.index].from_port
   to_port           = var.appserver-security_group_rules[count.index].to_port
-  cidr_ipv4         = var.appserver-security_group_rules[count.index].cidr_ipv4
+  cidr_ipv4        = var.appserver-security_group_rules[count.index].cidr_ipv4
+  referenced_security_group_id = aws_security_group.customer-webserver-security-group.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "customer-inbound-appserver-security-group-ssh-bastion-ingress-rules" {
+  security_group_id = aws_security_group.customer-appserver-security-group.id
+  count             = length(var.appserver-security_group_rules)
+  ip_protocol       = var.appserver-ssh-bastion-security_group_rules[count.index].ip_protocol
+  from_port         = var.appserver-ssh-bastion-security_group_rules[count.index].from_port
+  to_port           = var.appserver-ssh-bastion-security_group_rules[count.index].to_port
+  cidr_ipv4        = var.appserver-ssh-bastion-security_group_rules[count.index].cidr_ipv4
+  referenced_security_group_id = aws_security_group.customer-SSH-Bastion-sg.id 
+  depends_on = [ aws_security_group.customer-SSH-Bastion-sg ]
+}
+
+
+resource "aws_vpc_security_group_ingress_rule" "customer-inbound-appserver-security-group-rdp-bastion-ingress-rules" {
+  security_group_id = aws_security_group.customer-appserver-security-group.id
+  count             = length(var.appserver-security_group_rules)
+  ip_protocol       = var.appserver-rdp-bastion-security_group_rules[count.index].ip_protocol
+  from_port         = var.appserver-rdp-bastion-security_group_rules[count.index].from_port
+  to_port           = var.appserver-rdp-bastion-security_group_rules[count.index].to_port
+  cidr_ipv4        = var.appserver-rdp-bastion-security_group_rules[count.index].cidr_ipv4
+  referenced_security_group_id = aws_security_group.customer-RDP-Bastion-sg.id 
+  depends_on = [ aws_security_group.customer-RDP-Bastion-sg ]
 }
 
 ###########################Creating DB server security group############################
@@ -139,8 +163,8 @@ resource "aws_vpc_security_group_ingress_rule" "customer-inbound-dbserver-securi
   count             = length(var.db-security_group_rules)
   ip_protocol       = var.db-security_group_rules[count.index].ip_protocol
   from_port         = var.db-security_group_rules[count.index].from_port
-  to_port           = var.db-security_group_rules[count.index].to_port
-  cidr_ipv4         = var.db-security_group_rules[count.index].cidr_ipv4
+  to_port           = var.db-security_group_rules[count.index].to_port    
+  referenced_security_group_id = aws_security_group.customer-appserver-security-group.id
 }
 
 ###########################Creating lb security group############################
