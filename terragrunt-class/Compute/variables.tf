@@ -113,3 +113,76 @@ variable "iam_instance_profile" {
   type = string 
   description = "the iam instance profile to use for resource creation"
 }
+
+variable "instance_server_type" {
+  type = string 
+  description = "The instance type for the app and web servers"
+}
+
+variable "appserver-names" {
+  type = list(string)
+  description = "The names of the app-servers"
+}
+variable "windows_volume_size" {
+  type = string 
+  description = "The size of the root volume for windows boxes"
+}
+
+variable "windows_volume_type" {
+  type = string 
+  description = "The volume type"
+}
+variable "webserver-names" {
+  type = list(string)
+  description = "The names of the web-servers"
+}
+variable "load-balancer-name" {
+  type = string
+  description = "The name of the load balancer"
+  default = "customer-public-load-balancer"
+}
+
+variable "target_group_name" {
+  type = string
+  description = "The target group for the application load balancer"
+  default = "customer-public-target-group"
+}
+
+variable "health_check" {
+   type = map(string)
+   description = "The health check default values"
+}
+variable "parent_zone_id" {
+  type = string 
+  description = "The id of the hosted zone "
+}
+
+variable "db-security_group_rules" {
+  description = "All db server security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}
+
+variable "lb-security_group_rules" {
+   description = "All lb security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}
+variable "sql_instance_type" {
+  type = string 
+  description = "The instance type for the sql instance"
+}
+variable "dbserver-names" {
+ type = list(string) 
+ description = "The names of the dbserver"
+}

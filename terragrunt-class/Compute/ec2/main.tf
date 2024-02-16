@@ -49,28 +49,28 @@ data "aws_vpc" "customer_vpc" {
   }
 }
 
-data "aws_vpc" "customer_private_subnet_1" {
+data "aws_subnet" "customer_private_subnet_1" {
   filter {
     name   = "tag:Name"
     values = ["${var.Owner}-${var.Environment}-Private-Subnet-1"]
   }
 }
 
-data "aws_vpc" "customer_private_subnet_2" {
+data "aws_subnet" "customer_private_subnet_2" {
   filter {
     name   = "tag:Name"
     values = ["${var.Owner}-${var.Environment}-Private-Subnet-2"]
   }
 }
 
-data "aws_vpc" "customer_public_subnet_1" {
+data "aws_subnet" "customer_public_subnet_1" {
   filter {
     name   = "tag:Name"
     values = ["${var.Owner}-${var.Environment}-Public-Subnet-1"]
   }
 }
 
-data "aws_vpc" "customer_public_subnet_2" {
+data "aws_subnet" "customer_public_subnet_2" {
   filter {
     name   = "tag:Name"
     values = ["${var.Owner}-${var.Environment}-Public-Subnet-2"]
@@ -107,7 +107,21 @@ data "aws_security_group" "rdp-bastion" {
   }
 }
 
-########################SHH BASTION CREATION##################################
+data "aws_security_group" "db-security-group" {
+  filter {
+    name = "tag:Name"
+    values = ["${var.Owner}-${var.Environment}-db-security-group"]
+  }
+}
+
+data "aws_security_group" "lb-security-group" {
+  filter {
+    name = "tag:Name"
+    values = ["${var.Owner}-${var.Environment}-lb-security-group"]
+  }
+}
+
+########################SSH BASTION CREATION##################################
 resource "aws_instance" "customer-ssh-bastion" {
   ami = data.aws_ami.amazon-linux-2.id
   instance_type = var.bastion-instance-type 
@@ -119,9 +133,168 @@ resource "aws_instance" "customer-ssh-bastion" {
 
  tags = merge(local.common_tags,
     {
-      "Name" = "${var.Owner}-${var.Environment}-VPC"
+      "Name" = "${var.Owner}-${var.Environment}-ssh-bastion"
+    }
+  )
+}
+
+#########################RDP BASTION CREATION####################################
+resource "aws_instance" "customer-rdp-bastion" {
+  ami = data.aws_ami.windows-2019.id
+  instance_type = var.bastion-instance-type 
+  associate_public_ip_address = "true"
+  key_name = var.keyname
+  subnet_id = data.aws_subnet.customer_public_subnet_1.id
+  security_groups = [data.aws_security_group.rdp-bastion.id]
+  iam_instance_profile = var.iam_instance_profile
+
+ tags = merge(local.common_tags,
+    {
+      "Name" = "${var.Owner}-${var.Environment}-rdp-bastion"
+    }
+  )
+}
+
+#########################APPSERVER CREATION########################################
+resource "aws_instance" "customer-appserver" {
+  ami = data.aws_ami.windows-2019.id
+  instance_type = var.instance_server_type 
+  user_data = "${file("iis.ps1")}"
+  key_name = var.keyname
+  subnet_id = data.aws_subnet.customer_private_subnet_1.id
+  security_groups = [data.aws_security_group.appserver-security-group.id]
+  count = length(var.appserver-names)
+  iam_instance_profile = var.iam_instance_profile
+  #root disk
+  root_block_device {
+    volume_size = var.windows_volume_size
+    volume_type = var.windows_volume_type
+    encrypted = true 
+    delete_on_termination = true 
+  }
+
+  tags = merge(local.common_tags,
+    {
+      Name = element(var.appserver-names, count.index)
     }
   )
 }
 
 
+#########################WEBSERVER CREATION########################################
+resource "aws_instance" "customer-webserver" {
+  ami = data.aws_ami.amazon-linux-2.id
+  instance_type = var.instance_server_type 
+  associate_public_ip_address = "true"
+  user_data = "${file("cobsine.sh")}"
+  key_name = var.keyname
+  subnet_id = data.aws_subnet.customer_public_subnet_1.id
+  security_groups = [data.aws_security_group.webserver-security-group.id]
+  count = length(var.webserver-names)
+  iam_instance_profile = var.iam_instance_profile
+
+  tags = merge(local.common_tags,
+    {
+      Name = element(var.webserver-names, count.index)
+    }
+  )
+}
+######################DBSERVER CREATION######################################
+resource "aws_instance" "customer-dbserver" {
+  ami = data.aws_ami.amznlnx2-SQL.id
+  instance_type = var.sql_instance_type
+  key_name = var.keyname
+  subnet_id = data.aws_subnet.customer_private_subnet_1.id
+  security_groups = [data.aws_security_group.db-security-group.id]
+  count = length(var.dbserver-names)
+  iam_instance_profile = var.iam_instance_profile
+
+  tags = merge(local.common_tags,
+    {
+      Name = element(var.webserver-names, count.index)
+    }
+  )
+}
+
+###############CREATING THE WEBSERVER LOAD BALANCER#####################
+resource "aws_lb" "customer-webserver-lb" {
+  name               = var.load-balancer-name
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [data.aws_security_group.lb-security-group.id]
+  subnets            = [data.aws_subnet.customer_public_subnet_1.id, data.aws_subnet.customer_public_subnet_2.id]
+
+ tags = merge(local.common_tags,
+    {
+      "Name" = "${var.Owner}-${var.Environment}-webserver-lb"
+    }
+  )
+}
+
+resource "aws_lb_target_group" "customer-alb-tg" {
+  name     = var.target_group_name
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = data.aws_vpc.customer_vpc.id
+  health_check {
+      healthy_threshold   = var.health_check["healthy_threshold"]
+      interval            = var.health_check["interval"]
+      unhealthy_threshold = var.health_check["unhealthy_threshold"]
+      timeout             = var.health_check["timeout"]
+      path                = var.health_check["path"]
+      port                = var.health_check["port"]
+  }
+ tags = merge(local.common_tags,
+    {
+      "Name" = "${var.Owner}-${var.Environment}-webserver-tg"
+    }
+  )
+}
+
+resource "aws_lb_target_group_attachment" "customer-alb-tg-attachment1" {
+  count = length(aws_instance.customer-webserver)
+  target_group_arn = aws_lb_target_group.customer-alb-tg.arn
+  target_id        = aws_instance.customer-webserver[count.index].id
+  port             = 80
+}
+
+resource "aws_lb_listener" "front_end" {
+  load_balancer_arn = aws_lb.customer-webserver-lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.customer-alb-tg.arn
+  }
+}
+
+
+resource "aws_lb_listener_rule" "lb_listener_http" {
+ listener_arn = aws_lb_listener.front_end.arn 
+ priority = 100 
+
+ action{
+   type = "forward"
+   target_group_arn = aws_lb_target_group.customer-alb-tg.arn
+ }
+
+  condition {
+    path_pattern {
+      values = ["/static/*"]
+    }
+  }
+}
+
+resource "aws_route53_record" "customer-webserver-dns-record" {
+  zone_id = var.parent_zone_id
+  name    = "newtechnologies.com"
+  type    = "A"
+  # ttl     = 300
+  # records = [aws_lb.customer-webserver-lb.dns_name]
+  # depends_on = [ aws_lb.customer-webserver-lb.dns_name ]
+    alias {
+    name                   = aws_lb.customer-webserver-lb.dns_name
+    zone_id                = aws_lb.customer-webserver-lb.zone_id
+    evaluate_target_health = true
+  }
+}

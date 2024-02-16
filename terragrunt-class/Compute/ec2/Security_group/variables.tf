@@ -214,3 +214,25 @@ variable "appserver-security_group_rules" {
   # }]
 
 }
+
+variable "db-security_group_rules" {
+  description = "All db server security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}
+
+variable "lb-security_group_rules" {
+   description = "All lb security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}

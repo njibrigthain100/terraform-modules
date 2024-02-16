@@ -98,13 +98,13 @@ resource "aws_vpc_security_group_ingress_rule" "customer-inbound-rdp-bastion-sec
 }
 ###########################Creating App server security group############################
 resource "aws_security_group" "customer-appserver-security-group" {
-  name = "${var.Owner}-${var.Environment}-App-server"
+  name = "${var.Owner}-${var.Environment}-Appserver"
   vpc_id = data.aws_vpc.customer_vpc.id
   depends_on = [
   data.aws_vpc.customer_vpc]
   tags = merge(local.common_tags,
     {
-      "Name" = "${var.Owner}-${var.Environment}-App-server-security-group"
+      "Name" = "${var.Owner}-${var.Environment}-Appserver-security-group"
     }
   )
 }
@@ -117,4 +117,50 @@ resource "aws_vpc_security_group_ingress_rule" "customer-inbound-appserver-secur
   from_port         = var.appserver-security_group_rules[count.index].from_port
   to_port           = var.appserver-security_group_rules[count.index].to_port
   cidr_ipv4         = var.appserver-security_group_rules[count.index].cidr_ipv4
+}
+
+###########################Creating DB server security group############################
+resource "aws_security_group" "customer-db-security-group" {
+  name = "${var.Owner}-${var.Environment}-dbserver"
+  vpc_id = data.aws_vpc.customer_vpc.id
+  depends_on = [
+  data.aws_vpc.customer_vpc]
+  tags = merge(local.common_tags,
+    {
+      "Name" = "${var.Owner}-${var.Environment}-db-security-group"
+    }
+  )
+}
+
+#######################Creating the App server security group rules ingress rules#############################
+resource "aws_vpc_security_group_ingress_rule" "customer-inbound-dbserver-security-group-ingress-rules" {
+  security_group_id = aws_security_group.customer-db-security-group.id
+  count             = length(var.db-security_group_rules)
+  ip_protocol       = var.db-security_group_rules[count.index].ip_protocol
+  from_port         = var.db-security_group_rules[count.index].from_port
+  to_port           = var.db-security_group_rules[count.index].to_port
+  cidr_ipv4         = var.db-security_group_rules[count.index].cidr_ipv4
+}
+
+###########################Creating lb security group############################
+resource "aws_security_group" "customer-lb-security-group" {
+  name = "${var.Owner}-${var.Environment}-lb-security"
+  vpc_id = data.aws_vpc.customer_vpc.id
+  depends_on = [
+  data.aws_vpc.customer_vpc]
+  tags = merge(local.common_tags,
+    {
+      "Name" = "${var.Owner}-${var.Environment}-lb-security-group"
+    }
+  )
+}
+
+#######################Creating the App server security group rules ingress rules#############################
+resource "aws_vpc_security_group_ingress_rule" "customer-inbound-lbserver-security-group-ingress-rules" {
+  security_group_id = aws_security_group.customer-lb-security-group.id
+  count             = length(var.lb-security_group_rules)
+  ip_protocol       = var.lb-security_group_rules[count.index].ip_protocol
+  from_port         = var.lb-security_group_rules[count.index].from_port
+  to_port           = var.lb-security_group_rules[count.index].to_port
+  cidr_ipv4         = var.lb-security_group_rules[count.index].cidr_ipv4
 }
