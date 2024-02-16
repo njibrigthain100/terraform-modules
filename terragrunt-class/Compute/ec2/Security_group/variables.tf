@@ -45,16 +45,12 @@ variable "CostCenter" {
   type        = string
   description = "The cost center to be applied to the resources"
 
-
 }
 
 variable "Compliance" {
   type        = string
   description = "The compliance status of the resources"
-
-
 }
-
 
 variable "webserver-security_group_rules" {
   description = "All web server security group rules"
@@ -62,9 +58,10 @@ variable "webserver-security_group_rules" {
     from_port   = number
     to_port     = number
     ip_protocol = string
-    cidr_ipv4   = string
     description = string
   }))
+
+
 #   default = [{
 #     from_port   = 22
 #     to_port     = 22

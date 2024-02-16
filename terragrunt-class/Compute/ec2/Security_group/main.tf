@@ -20,7 +20,7 @@ data "aws_vpc" "customer_vpc" {
   }
 }
 
-######################Creating the security groups for the cluster##################
+######################Creating the security groups for the Webserver##################
 resource "aws_security_group" "customer-webserver-security-group" {
   name = "${var.Owner}-${var.Environment}-Webserver"
   vpc_id = data.aws_vpc.customer_vpc.id
@@ -40,7 +40,8 @@ resource "aws_vpc_security_group_ingress_rule" "customer-inbound-webserver-secur
   ip_protocol       = var.webserver-security_group_rules[count.index].ip_protocol
   from_port         = var.webserver-security_group_rules[count.index].from_port
   to_port           = var.webserver-security_group_rules[count.index].to_port
-  cidr_ipv4         = var.webserver-security_group_rules[count.index].cidr_ipv4
+  referenced_security_group_id = aws_security_group.customer-lb-security-group.id 
+  depends_on = [ aws_security_group.customer-lb-security-group ]
 }
 
 #########################Creating security group egress rules#######################
