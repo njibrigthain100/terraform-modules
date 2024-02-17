@@ -62,7 +62,6 @@ variable "webserver-security_group_rules" {
     from_port   = number
     to_port     = number
     ip_protocol = string
-    cidr_ipv4   = string
     description = string
   }))
  }
@@ -94,7 +93,26 @@ variable "appserver-security_group_rules" {
     from_port   = number
     to_port     = number
     ip_protocol = string
-    cidr_ipv4   = string
+    description = string
+  }))
+}
+
+variable "appserver-ssh-bastion-security_group_rules" {
+  description = "All app server security group rules from the rdp bastion"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    description = string
+  }))
+}
+
+variable "appserver-rdp-bastion-security_group_rules" {
+  description = "All app server security group rules from the rdp bastion"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
     description = string
   }))
 }
@@ -132,8 +150,13 @@ variable "windows_volume_type" {
   type = string 
   description = "The volume type"
 }
-variable "webserver-names" {
-  type = list(string)
+variable "webserver-name-cobsine" {
+  type = string
+  description = "The names of the web-servers"
+}
+
+variable "webserver-name-dotnet" {
+  type = string
   description = "The names of the web-servers"
 }
 variable "load-balancer-name" {
@@ -142,10 +165,14 @@ variable "load-balancer-name" {
   default = "customer-public-load-balancer"
 }
 
-variable "target_group_name" {
+variable "cobsine-target_group_name" {
   type = string
   description = "The target group for the application load balancer"
-  default = "customer-public-target-group"
+}
+
+variable "dotnet-target_group_name" {
+  type = string
+  description = "The target group for the application load balancer"
 }
 
 variable "health_check" {
@@ -163,12 +190,22 @@ variable "db-security_group_rules" {
     from_port   = number
     to_port     = number
     ip_protocol = string
-    cidr_ipv4   = string
     description = string
   }))
 }
 
 variable "lb-security_group_rules" {
+   description = "All lb security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}
+
+variable "lb-vpc-security_group_rules" {
    description = "All lb security group rules"
   type = list(object({
     from_port   = number

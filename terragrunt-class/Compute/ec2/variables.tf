@@ -90,8 +90,13 @@ variable "windows_volume_type" {
   description = "The volume type"
 }
 
-variable "webserver-names" {
-  type = list(string)
+variable "webserver-name-cobsine" {
+  type = string
+  description = "The names of the web-servers"
+}
+
+variable "webserver-name-dotnet" {
+  type = string
   description = "The names of the web-servers"
 }
 variable "load-balancer-name" {
@@ -99,7 +104,12 @@ variable "load-balancer-name" {
   description = "The name of the load balancer"
 }
 
-variable "target_group_name" {
+variable "cobsine-target_group_name" {
+  type = string
+  description = "The target group for the application load balancer"
+}
+
+variable "dotnet-target_group_name" {
   type = string
   description = "The target group for the application load balancer"
 }
@@ -113,16 +123,6 @@ variable "parent_zone_id" {
   description = "The id of the hosted zone "
 }
 
-variable "db-security_group_rules" {
-  description = "All db server security group rules"
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    ip_protocol = string
-    cidr_ipv4   = string
-    description = string
-  }))
-}
 
 variable "sql_instance_type" {
   type = string 

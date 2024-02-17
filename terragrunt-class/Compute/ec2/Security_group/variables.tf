@@ -133,3 +133,14 @@ variable "lb-security_group_rules" {
     description = string
   }))
 }
+
+variable "lb-vpc-security_group_rules" {
+   description = "All lb security group rules"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    ip_protocol = string
+    cidr_ipv4   = string
+    description = string
+  }))
+}

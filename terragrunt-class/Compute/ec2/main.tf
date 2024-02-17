@@ -121,6 +121,7 @@ data "aws_security_group" "lb-security-group" {
   }
 }
 
+
 ########################SSH BASTION CREATION##################################
 resource "aws_instance" "customer-ssh-bastion" {
   ami = data.aws_ami.amazon-linux-2.id
@@ -182,7 +183,7 @@ resource "aws_instance" "customer-appserver" {
 
 
 #########################WEBSERVER CREATION########################################
-resource "aws_instance" "customer-webserver" {
+resource "aws_instance" "customer-webserver-cobsine" {
   ami = data.aws_ami.amazon-linux-2.id
   instance_type = var.instance_server_type 
   associate_public_ip_address = "true"
@@ -190,15 +191,31 @@ resource "aws_instance" "customer-webserver" {
   key_name = var.keyname
   subnet_id = data.aws_subnet.customer_public_subnet_1.id
   security_groups = [data.aws_security_group.webserver-security-group.id]
-  count = length(var.webserver-names)
   iam_instance_profile = var.iam_instance_profile
 
   tags = merge(local.common_tags,
     {
-      Name = element(var.webserver-names, count.index)
+      Name = "${var.Owner}-${var.Environment}-${var.webserver-name-cobsine}-w-01"
     }
   )
 }
+resource "aws_instance" "customer-webserver-dotnet" {
+  ami = data.aws_ami.amazon-linux-2.id
+  instance_type = var.instance_server_type 
+  associate_public_ip_address = "true"
+  user_data = "${file("dotnet.sh")}"
+  key_name = var.keyname
+  subnet_id = data.aws_subnet.customer_public_subnet_2.id
+  security_groups = [data.aws_security_group.webserver-security-group.id]
+  iam_instance_profile = var.iam_instance_profile
+
+  tags = merge(local.common_tags,
+    {
+      Name = "${var.Owner}-${var.Environment}-${var.webserver-name-dotnet}-w-01"
+    }
+  )
+}
+
 ######################DBSERVER CREATION######################################
 resource "aws_instance" "customer-dbserver" {
   ami = data.aws_ami.amznlnx2-SQL.id
@@ -211,7 +228,7 @@ resource "aws_instance" "customer-dbserver" {
 
   tags = merge(local.common_tags,
     {
-      Name = element(var.webserver-names, count.index)
+      Name = element(var.dbserver-names, count.index)
     }
   )
 }
@@ -231,8 +248,29 @@ resource "aws_lb" "customer-webserver-lb" {
   )
 }
 
-resource "aws_lb_target_group" "customer-alb-tg" {
-  name     = var.target_group_name
+# resource "aws_lb_target_group" "customer-alb-tg" {
+#   name     = var.target_group_name
+#   port     = 80
+#   protocol = "HTTP"
+#   vpc_id   = data.aws_vpc.customer_vpc.id
+#   health_check {
+#       healthy_threshold   = var.health_check["healthy_threshold"]
+#       interval            = var.health_check["interval"]
+#       unhealthy_threshold = var.health_check["unhealthy_threshold"]
+#       timeout             = var.health_check["timeout"]
+#       path                = var.health_check["path"]
+#       port                = var.health_check["port"]
+#   }
+#  tags = merge(local.common_tags,
+#     {
+#       "Name" = "${var.Owner}-${var.Environment}-webserver-tg"
+#     }
+#   )
+# }
+
+
+resource "aws_lb_target_group" "customer-cobsine-tg" {
+  name     = var.cobsine-target_group_name
   port     = 80
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.customer_vpc.id
@@ -246,52 +284,114 @@ resource "aws_lb_target_group" "customer-alb-tg" {
   }
  tags = merge(local.common_tags,
     {
-      "Name" = "${var.Owner}-${var.Environment}-webserver-tg"
+      "Name" = "${var.Owner}-${var.Environment}-cobsine-tg"
     }
   )
 }
 
-resource "aws_lb_target_group_attachment" "customer-alb-tg-attachment1" {
-  count = length(aws_instance.customer-webserver)
-  target_group_arn = aws_lb_target_group.customer-alb-tg.arn
-  target_id        = aws_instance.customer-webserver[count.index].id
+resource "aws_lb_target_group" "customer-dotnet-tg" {
+  name     = var.dotnet-target_group_name
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = data.aws_vpc.customer_vpc.id
+  health_check {
+      healthy_threshold   = var.health_check["healthy_threshold"]
+      interval            = var.health_check["interval"]
+      unhealthy_threshold = var.health_check["unhealthy_threshold"]
+      timeout             = var.health_check["timeout"]
+      path                = var.health_check["path"]
+      port                = var.health_check["port"]
+  }
+ tags = merge(local.common_tags,
+    {
+      "Name" = "${var.Owner}-${var.Environment}-dotnet-tg"
+    }
+  )
+}
+
+resource "aws_lb_target_group_attachment" "customer-cobsine-tg-attachment1" {
+  target_group_arn = aws_lb_target_group.customer-cobsine-tg.arn
+  target_id        = aws_instance.customer-webserver-cobsine.id 
   port             = 80
 }
 
-resource "aws_lb_listener" "front_end" {
+resource "aws_lb_target_group_attachment" "customer-dotnet-tg-attachment1" {
+  target_group_arn = aws_lb_target_group.customer-dotnet-tg.arn
+  target_id        = aws_instance.customer-webserver-dotnet.id 
+  port             = 80
+}
+
+
+resource "aws_lb_listener" "webserver" {
   load_balancer_arn = aws_lb.customer-webserver-lb.arn
   port              = "80"
   protocol          = "HTTP"
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.customer-alb-tg.arn
-  }
-}
-
-
-resource "aws_lb_listener_rule" "lb_listener_http" {
- listener_arn = aws_lb_listener.front_end.arn 
- priority = 100 
-
- action{
-   type = "forward"
-   target_group_arn = aws_lb_target_group.customer-alb-tg.arn
- }
-
-  condition {
-    path_pattern {
-      values = ["/static/*"]
+    type             = "fixed-response"
+    fixed_response {
+      content_type = "text/plain"
+      status_code = "200"
+      message_body = "OK"
     }
   }
 }
 
+
+# resource "aws_lb_listener_rule" "lb_listener_http" {
+#  listener_arn = aws_lb_listener.front_end.arn 
+#  priority = 100 
+
+#  action{
+#    type = "forward"
+#    target_group_arn = aws_lb_target_group.customer-alb-tg.arn
+#  }
+
+#   condition {
+#     path_pattern {
+#       values = ["/static/*"]
+#     }
+#   }
+# }
+
+resource "aws_lb_listener_rule" "cobsine_listener_http" {
+ listener_arn = aws_lb_listener.webserver.arn 
+ priority = 100 
+
+ action{
+   type = "forward"
+   target_group_arn = aws_lb_target_group.customer-cobsine-tg.arn
+ }
+
+  condition {
+    path_pattern {
+      values = ["/home*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "dotnet_listener_http" {
+ listener_arn = aws_lb_listener.webserver.arn 
+ priority = 101 
+
+ action{
+   type = "forward"
+   target_group_arn = aws_lb_target_group.customer-dotnet-tg.arn
+ }
+
+  condition {
+    path_pattern {
+      values = ["/market*"]
+    }
+  }
+}
+
+
 resource "aws_route53_record" "customer-webserver-dns-record" {
   zone_id = var.parent_zone_id
-  name    = "newtechnologies.com"
+  name    = "app.myafriquefashion.com"
   type    = "A"
-  # ttl     = 300
+  # ttl     = "60"
   # records = [aws_lb.customer-webserver-lb.dns_name]
-  # depends_on = [ aws_lb.customer-webserver-lb.dns_name ]
     alias {
     name                   = aws_lb.customer-webserver-lb.dns_name
     zone_id                = aws_lb.customer-webserver-lb.zone_id
